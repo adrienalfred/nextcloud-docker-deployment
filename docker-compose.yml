@@ -1,54 +1,72 @@
- 1 services:                                                                                                                                                                                                                                  
- 2   db:                                                                                                                                                                                                                                      
- 3     image: postgres:16                                                                                                                                                                                                                     
- 4     restart: always                                                                                                                                                                                                                        
- 5     volumes:                                                                                                                                                                                                                               
- 6       - db_data:/var/lib/postgresql/data                                                                                                                                                                                                   
- 7     environment:                                                                                                                                                                                                                           
- 8       - POSTGRES_DB=nextcloud                                                                                                                                                                                                              
- 9       - POSTGRES_USER=nextcloud                                                                                                                                                                                                            
-10       - POSTGRES_PASSWORD=NextcloudSecureDB2026                                                                                                                                                                                            
-11                                                                                                                                                                                                                                            
-12   app:                                                                                                                                                                                                                                     
-13     image: nextcloud:latest                                                                                                                                                                                                                
-14     restart: always                                                                                                                                                                                                                        
-15     ports:                                                                                                                                                                                                                                 
-16       - "8080:80"                                                                                                                                                                                                                          
-17     depends_on:                                                                                                                                                                                                                            
-18       - db                                                                                                                                                                                                                                 
-19     volumes:                                                                                                                                                                                                                               
-20       - nextcloud_data:/var/www/html                                                                                                                                                                                                       
-21     environment:                                                                                                                                                                                                                           
-22       - POSTGRES_HOST=db                                                                                                                                                                                                                   
-23       - POSTGRES_DB=nextcloud                                                                                                                                                                                                              
-24       - POSTGRES_USER=nextcloud                                                                                                                                                                                                            
-25       - POSTGRES_PASSWORD=NextcloudSecureDB2026                                                                                                                                                                                            
-26       - NEXTCLOUD_ADMIN_USER=admin                                                                                                                                                                                                         
-27       - NEXTCLOUD_ADMIN_PASSWORD=AdminSecurePass2026                                                                                                                                                                                       
-28                                                                                                                                                                                                                                            
-29   minio:                                                                                                                                                                                                                                   
-30     image: minio/minio                                                                                                                                                                                                                     
-31     restart: always                                                                                                                                                                                                                        
-32     ports:                                                                                                                                                                                                                                 
-33       - "9000:9000"                                                                                                                                                                                                                        
-34       - "9001:9001"                                                                                                                                                                                                                        
-35     volumes:                                                                                                                                                                                                                               
-36       - minio_data:/data                                                                                                                                                                                                                   
-37     environment:                                                                                                                                                                                                                           
-38       - MINIO_ROOT_USER=minioadmin                                                                                                                                                                                                         
-39       - MINIO_ROOT_PASSWORD=MinioSecurePass2026                                                                                                                                                                                            
-40     command: server /data --console-address ":9001"                                                                                                                                                                                        
-41                                                                                                                                                                                                                                            
-42   node-exporter:                                                                                                                                                                                                                           
-43     image: prom/node-exporter:latest                                                                                                                                                                                                       
-44     restart: always                                                                                                                                                                                                                        
-45     ports:                                                                                                                                                                                                                                 
-46       - "9100:9100"                                                                                                                                                                                                                        
-47                                                                                                                                                                                                                                            
-48   prometheus:                                                                                                                                                                                                                              
-49     image: prom/prometheus:latest                                                                                                                                                                                                          
-50     restart: always                                                                                                                                                                                                                        
-51     ports:                                                                                                                                                                                                                                 
-52       - "9090:9090"                                                                                                                                                                                                                        
-docker-compose.yml (1,1) | ft:yaml | unix | utf-8                                                                                                                                                                Alt-g: bindings, Ctrl-g: help
-                                                                                                                                                                                                                                              
+services:
+  db:
+    image: postgres:16
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_PASSWORD=NextcloudSecureDB2026
+
+  app:
+    image: nextcloud:latest
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    volumes:
+      - nextcloud_data:/var/www/html
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_PASSWORD=NextcloudSecureDB2026
+      - NEXTCLOUD_ADMIN_USER=admin
+      - NEXTCLOUD_ADMIN_PASSWORD=AdminSecurePass2026
+
+  minio:
+    image: minio/minio
+    restart: always
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=MinioSecurePass2026
+    command: server /data --console-address ":9001"
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    restart: always
+    ports:
+      - "9100:9100"
+
+  prometheus:
+    image: prom/prometheus:latest
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=GrafanaSecurePass2026
+
+volumes:
+  db_data:
+  nextcloud_data:
+  minio_data:
+  prometheus_data:
+  grafana_data:
